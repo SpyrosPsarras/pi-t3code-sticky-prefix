@@ -1,0 +1,20 @@
+{
+  "name": "pi-t3code-sticky-prefix",
+  "version": "0.1.0",
+  "description": "Keep the parent model's account prefix when T3 Code delegates through Pi.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Spyros Psarras",
+  "repository": "github:SpyrosPsarras/pi-t3code-sticky-prefix",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./index.ts"]
+  },
+  "files": ["index.ts", "README.md", "CHANGELOG.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
