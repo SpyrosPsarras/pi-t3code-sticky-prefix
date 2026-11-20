@@ -1,6 +1,25 @@
 # pi-t3code-sticky-prefix
 
-Some model gateways use a prefix in the model ID to select an account. When a Pi thread runs on `gateway/acme/claude-opus` and asks T3 Code to delegate to `gateway/claude-haiku`, the gateway may pick a different account for the child. This extension keeps the parent's account prefix when the matching model is available.
+When T3 Code delegates from one Pi agent to another, this extension adds the parent's account prefix to an unprefixed child model from the same provider if Pi lists the prefixed model.
+
+## Do you need this?
+
+Only if all three are true:
+
+1. You run T3 Code with Pi, and your Pi agent starts another Pi agent with `delegate_task`.
+2. The parent runs on a model with an account prefix, and your gateway uses that prefix to select an account. For example, CLIProxyAPI lets you set a `prefix` on an account's credential.
+3. The gateway can route the unprefixed child model (`cliproxy/claude-haiku-5-5`) to another account, and Pi lists the version with the parent's prefix (`cliproxy/acme/claude-haiku-5-5`).
+
+Without this extension: you start a thread on `cliproxy/acme/claude-opus-5-5`, the agent delegates to `cliproxy/claude-haiku-5-5`, and the gateway picks the account. The child can then use another account's quota, rate limit and billing.
+
+With it, Pi changes the child model before T3 Code receives the call:
+
+```text
+before: cliproxy/claude-haiku-5-5
+after:  cliproxy/acme/claude-haiku-5-5
+```
+
+It does nothing in plain Pi without T3 Code. It does not fix wrong provider or model selection in T3 Code.
 
 ## Install
 
@@ -8,15 +27,20 @@ Some model gateways use a prefix in the model ID to select an account. When a Pi
 pi install npm:pi-t3code-sticky-prefix
 ```
 
+To turn it off: `pi remove npm:pi-t3code-sticky-prefix`.
+
 ## When it rewrites
 
-The extension handles both T3 Code `delegate_task` tool names. It rewrites `target.model` when the parent has a prefix, the target provider instance is omitted or `pi`, the child explicitly names an unprefixed model from the parent's provider, and the prefixed child model exists in Pi's model registry. For example, a parent on `gateway/acme/claude-opus` changes `gateway/claude-haiku` to `gateway/acme/claude-haiku`. Pi shows a notification for the rewrite.
+It rewrites `target.model` in a `delegate_task` call only when all of these hold:
 
-Otherwise the call is unchanged. Explicit prefixes like `team-b/` are kept. If `target.model` is omitted, T3 Code already gives the child the parent's model.
+- The parent model has an account prefix, like `acme/` in `cliproxy/acme/claude-opus-5-5`.
+- `target.providerInstanceId` is omitted or `pi`.
+- `target.model` is an unprefixed model from the parent's provider, like `cliproxy/claude-haiku-5-5`.
+- Pi's model registry has the prefixed model, `cliproxy/acme/claude-haiku-5-5`.
 
-To turn it off, remove the package from Pi's settings.
+The extension asks Pi to show a notification after each rewrite. Every other call stays unchanged. An explicit prefix like `cliproxy/team-b/claude-haiku-5-5` stays. If `target.model` is omitted and the child uses the same provider instance, T3 Code gives it the parent's model.
 
 ## Limits
 
-- It relies on T3's tool name and argument shape; a T3 change breaks it without warning.
-- It cannot pin a model that has no prefixed variant in the registry.
+- It relies on T3 Code's tool names (`mcp__t3-code__delegate_task`, `mcp__t3_code__delegate_task`) and argument shape. A T3 Code change can break it without warning.
+- It cannot pin a model that has no prefixed version in Pi's model registry.
