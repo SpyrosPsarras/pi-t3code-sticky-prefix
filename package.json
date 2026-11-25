@@ -1,6 +1,6 @@
 {
   "name": "pi-t3code-sticky-prefix",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Keep the parent model's account prefix when T3 Code delegates through Pi.",
   "type": "module",
   "license": "MIT",

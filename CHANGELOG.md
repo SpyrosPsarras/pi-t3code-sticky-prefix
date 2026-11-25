@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2]
+
+Republished so the pi.dev package catalogue can pick it up. No code or README changes.
+
 ## [0.1.1]
 
 README now says who needs this, what goes wrong without it and what it does not do. No code changes.
